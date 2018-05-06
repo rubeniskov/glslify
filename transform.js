@@ -155,7 +155,7 @@ module.exports = function (file, opts) {
         if (err) return d.emit('error', err)
         try { var bsrc = bundle(deps) }
         catch (err) { return d.emit('error', err) }
-        p.update(p.callee.source()+'(['+JSON.stringify(bsrc)+'])')
+        p.update('('+p.callee.source()+'(['+JSON.stringify(bsrc)+']))')
         cb()
       }
     }
