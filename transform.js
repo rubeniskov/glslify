@@ -96,7 +96,7 @@ module.exports = function (file, opts) {
             pending++
             callexpr(node, done)
         }
-      } else if (node.type === 'Identifier' && node.name === glvar
+      } else if (node.type === 'Identifier' && node.parent.name === glvar
       && node.parent.type === 'CallExpression') {
         // case: glvar(...)
         pending++
