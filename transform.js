@@ -89,6 +89,13 @@ module.exports = function (file, opts) {
           pending++
           tagexpr(p, done)
         }
+      } else if (node.type === 'CallExpression' && node.callee && node.callee.type === 'SequenceExpression') {
+        // case: (0, glvar2.default)(...)
+        const expression = node.callee.expressions.slice(-1)[0];
+        if(expression && expression.object.name === glvar + '2' && expression.property.name === 'default'){
+            pending++
+            callexpr(node, done)
+        }
       } else if (node.type === 'Identifier' && node.name === glvar
       && node.parent.type === 'CallExpression') {
         // case: glvar(...)
