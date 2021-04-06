@@ -86,6 +86,11 @@ module.exports = function (file, opts) {
           // case: require('glslify')(...)
           pending++
           callexpr(p, done)
+        } else if (p.type === 'CallExpression' && (pp.type === 'VariableDeclarator' || pp.type === 'AssignmentExpression')) {
+          // case: var glvar = __importDefault(require('glslify'))
+          // case: var glvar
+          //       glvar = __importDefault(require('glslify'))
+          glvar = pp.id.name
         } else if (p.type === 'AssignmentExpression') {
           // case: var glvar;
           //       glvar = require('glslify')
@@ -106,6 +111,11 @@ module.exports = function (file, opts) {
           pending++
           tagexpr(p, done)
         }
+      } else if (isCallInterop(node, glvar)) {
+        // case: glvar.default(...)
+        pending++
+        callexpr(node.parent.parent, done)
+
       } else if (isCallExpression(node, glvar)) {
         // case: glvar(...)
         pending++
@@ -295,18 +305,23 @@ function isTagExpression (node, glvar) {
     && node.tag.name === glvar
 }
 
-function isCallFile (node, glvar) {
+function isCallMember (node, glvar, member) {
   return node.type === 'Identifier' && node.name === glvar
     && node.parent.type === 'MemberExpression'
-    && node.parent.property.name === 'file'
+    && node.parent.property.name === member
     && node.parent.parent.type === 'CallExpression'
     && node.parent.parent.arguments[0]
 }
 
-function isCallCompile (node, glvar) {
-  return node.type === 'Identifier' && node.name === glvar
-    && node.parent.type === 'MemberExpression'
-    && node.parent.property.name === 'compile'
-    && node.parent.parent.type === 'CallExpression'
-    && node.parent.parent.arguments[0]
+function isCallFile (node, glvar) {
+  return isCallMember(node, glvar, 'file')
 }
+
+function isCallCompile (node, glvar) {
+  return isCallMember(node, glvar, 'compile')
+}
+
+function isCallInterop (node, glvar) {
+  return isCallMember(node, glvar, 'default')
+}
+
